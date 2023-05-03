@@ -22,7 +22,7 @@ def determine_install_type(install_type: str):
     if install_type == "--s" and temp == "":
         temp = "_source"
     elif install_type == "--b" and temp == "":
-        temp = f"_bin_{platform.processor()}"
+        temp = f"_bin_{platform.machine()}"
     return temp
 
 def check_for_alternative_install_dir(argv: list):
