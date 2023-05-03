@@ -46,6 +46,7 @@ for x in range(len(sys.argv)):
     install_dir = check_for_alternative_install_dir(sys.argv)
 
 if download_type_suffix == "": print("Error: no install type defined"); exit(1)
+if install_dir == "": install_dir = "/"
 
 print(f"packages to install: {packs}")
 print(f"download suffix: {download_type_suffix}")
