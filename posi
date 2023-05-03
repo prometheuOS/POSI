@@ -1,0 +1,52 @@
+#!/usr/bin/python3
+import sys
+import subprocess
+import os
+import ftplib
+import platform
+
+if os.geteuid() != 0: print("POSI needs to be run as root"); exit(1)
+if len(sys.argv) == 1: print("Error: invalid"); exit(1)
+
+ftp = ftplib.FTP("192.168.1.5")
+ftp.login("anon", "anon")
+
+internal_terms = ["--b", "--s", "--alt-install-dir="]
+
+download_type_suffix = ""
+install_dir = ""
+packs = []
+
+def determine_install_type(install_type: str):
+    temp = ""
+    if install_type == "--s" and temp == "":
+        temp = "_source"
+    elif install_type == "--b" and temp == "":
+        temp = f"_bin_{platform.processor()}"
+    return temp
+
+def check_for_alternative_install_dir(argv: list):
+    temp = ""
+    for x in argv:
+        if "--alt-install-dir=" in x and temp == "":
+            temp = x.replace("--alt-install-dir=", "")
+    return temp
+
+def get_packs_to_install(argv: list):
+    temp = []
+    for x in argv:
+        if x not in internal_terms:
+            temp.append(f"{x}{download_type_suffix}")
+    return temp
+
+for x in range(len(sys.argv)):
+    if x == 1:
+        download_type_suffix = determine_install_type(sys.argv[x])
+    packs = get_packs_to_install(sys.argv)
+    install_dir = check_for_alternative_install_dir(sys.argv)
+
+if download_type_suffix == "": print("Error: no install type defined"); exit(1)
+
+print(f"packages to install: {packs}")
+print(f"download suffix: {download_type_suffix}")
+print(f"install directory: {install_dir}")
