@@ -4,12 +4,19 @@ import subprocess
 import os
 import ftplib
 import platform
+import tempfile
 
 if os.geteuid() != 0: print("POSI needs to be run as root"); exit(1)
 if len(sys.argv) == 1: print("Error: invalid"); exit(1)
 
 ftp = ftplib.FTP("192.168.1.5")
 ftp.login("anon", "anon")
+ftp_list = ftp.nlst()
+tmp_dir = tempfile.mkdtemp()
+
+'''
+start of user option passing code
+'''
 
 internal_terms = ["--b", "--s", "--alt-install-dir="]
 
@@ -45,9 +52,25 @@ for x in range(len(sys.argv)):
     packs = get_packs_to_install(sys.argv)
     install_dir = check_for_alternative_install_dir(sys.argv)
 
+for pack in packs[:]:
+    if f"posi_bin_{platform.machine()}" in pack or f"posi_source" in pack:
+        packs.remove(pack)
+
+for pack in packs[:]:
+    if "--alt-install-dir=" in pack:
+        packs.remove(pack)
+
+for pack in packs:
+    if f"{pack}.tar.xz" not in ftp_list: print(f"Error: {pack}.tar.xz could not be found on ftp server"); exit(1)
+
 if download_type_suffix == "": print("Error: no install type defined"); exit(1)
 if install_dir == "": install_dir = "/"
 
 print(f"packages to install: {packs}")
-print(f"download suffix: {download_type_suffix}")
 print(f"install directory: {install_dir}")
+
+if input("Do you wish to continue with install [Y/n]: ") == "n": print("Exiting"); exit(1)
+
+'''
+end of user option passing code
+'''
